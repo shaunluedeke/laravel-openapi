@@ -76,7 +76,10 @@ class PathsBuilder
         return collect(app(Router::class)->getRoutes())
             ->filter(static fn (Route $route) => $route->getActionName() !== 'Closure')
             ->map(static fn (Route $route) => RouteInformation::createFromRoute($route))
-            ->filter(static function (RouteInformation $route) {
+            ->filter(static function (?RouteInformation $route) {
+                if (is_null($route)) {
+                    return false;
+                }
                 $pathItem = $route->controllerAttributes
                     ->first(static fn (object $attribute) => $attribute instanceof Attributes\PathItem);
 
