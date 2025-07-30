@@ -24,11 +24,6 @@ class RequestBodyFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'RequestBody')) {
-            return $name;
-        }
-
-        return $name.'RequestBody';
+        return Str::endsWith($name, 'RequestBody') ? $name : ($name . 'RequestBody');
     }
 }

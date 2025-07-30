@@ -24,11 +24,6 @@ class CallbackFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Callback')) {
-            return $name;
-        }
-
-        return $name.'Callback';
+        return Str::endsWith($name, 'Callback') ? $name : ($name . 'Callback');
     }
 }

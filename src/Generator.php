@@ -12,9 +12,8 @@ use Vyuldashev\LaravelOpenApi\Builders\TagsBuilder;
 
 class Generator
 {
-    public string $version = OpenApi::OPENAPI_3_0_2;
-
     public const COLLECTION_DEFAULT = 'default';
+    public string $version = OpenApi::OPENAPI_3_0_2;
 
     protected array $config;
     protected InfoBuilder $infoBuilder;
@@ -43,26 +42,17 @@ class Generator
     {
         $middlewares = Arr::get($this->config, 'collections.'.$collection.'.middlewares');
 
-        $info = $this->infoBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.info', []));
-        $servers = $this->serversBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.servers', []));
-        $tags = $this->tagsBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.tags', []));
-        $paths = $this->pathsBuilder->build($collection, Arr::get($middlewares, 'paths', []));
-        $components = $this->componentsBuilder->build($collection, Arr::get($middlewares, 'components', []));
-        $extensions = Arr::get($this->config, 'collections.'.$collection.'.extensions', []);
-
         $openApi = OpenApi::create()
             ->openapi(OpenApi::OPENAPI_3_0_2)
-            ->info($info)
-            ->servers(...$servers)
-            ->paths(...$paths)
-            ->components($components)
+            ->info($this->infoBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.info', [])))
+            ->servers(...($this->serversBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.servers', []))))
+            ->paths(...($this->pathsBuilder->build($collection, Arr::get($middlewares, 'paths', []))))
+            ->components($this->componentsBuilder->build($collection, Arr::get($middlewares, 'components', [])))
             ->security(...Arr::get($this->config, 'collections.'.$collection.'.security', []))
-            ->tags(...$tags);
-
-        foreach ($extensions as $key => $value) {
+            ->tags(...($this->tagsBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.tags', []))));
+        foreach (Arr::get($this->config, 'collections.'.$collection.'.extensions', []) as $key => $value) {
             $openApi = $openApi->x($key, $value);
         }
-
         return $openApi;
     }
 }

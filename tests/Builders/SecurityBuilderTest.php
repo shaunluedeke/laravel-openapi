@@ -84,7 +84,7 @@ class SecurityBuilderTest extends TestCase
         $components = Components::create()
             ->securitySchemes($testJwtScheme);
 
-        $routeInfo = new RouteInformation;
+        $routeInfo = new RouteInformation();
         $routeInfo->action = 'get';
         $routeInfo->name = 'test route';
         $routeInfo->actionAttributes = collect([
@@ -154,7 +154,7 @@ class SecurityBuilderTest extends TestCase
         $components = Components::create()
             ->securitySchemes($testJwtScheme);
 
-        $routeInfo = new RouteInformation;
+        $routeInfo = new RouteInformation();
         $routeInfo->parameters = collect();
         $routeInfo->action = 'foo';
         $routeInfo->method = 'get';

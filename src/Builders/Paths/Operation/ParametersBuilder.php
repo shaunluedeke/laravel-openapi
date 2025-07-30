@@ -17,10 +17,7 @@ class ParametersBuilder
 {
     public function build(RouteInformation $route): array
     {
-        $pathParameters = $this->buildPath($route);
-        $attributedParameters = $this->buildAttribute($route);
-
-        return $pathParameters->merge($attributedParameters)->toArray();
+        return $this->buildPath($route)->merge($this->buildAttribute($route))->toArray();
     }
 
     protected function buildPath(RouteInformation $route): Collection
@@ -65,10 +62,9 @@ class ParametersBuilder
         $parameters = $route->actionAttributes->first(static fn ($attribute) => $attribute instanceof Parameters, []);
 
         if ($parameters) {
-            /** @var ParametersFactory $parametersFactory */
-            $parametersFactory = app($parameters->factory);
-
-            $parameters = $parametersFactory->build();
+            /** @noinspection PhpUnhandledExceptionInspection */
+            /** @noinspection PhpParamsInspection */
+            $parameters = app($parameters->factory)->build();
         }
 
         return collect($parameters);

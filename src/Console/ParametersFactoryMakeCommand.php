@@ -24,11 +24,6 @@ class ParametersFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Parameters')) {
-            return $name;
-        }
-
-        return $name.'Parameters';
+        return Str::endsWith($name, 'Parameters') ? $name : ($name . 'Parameters');
     }
 }

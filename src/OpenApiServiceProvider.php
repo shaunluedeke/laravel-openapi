@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Vyuldashev\LaravelOpenApi;
 
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Vyuldashev\LaravelOpenApi\Builders\Components\CallbacksBuilder;
 use Vyuldashev\LaravelOpenApi\Builders\Components\RequestBodiesBuilder;
@@ -22,43 +21,22 @@ class OpenApiServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/openapi.php',
-            'openapi'
-        );
+        $this->mergeConfigFrom(__DIR__.'/../config/openapi.php', 'openapi');
 
-        $this->app->bind(CallbacksBuilder::class, function () {
-            return new CallbacksBuilder($this->getPathsFromConfig('callbacks'));
-        });
+        $this->app->bind(CallbacksBuilder::class, fn () => new CallbacksBuilder($this->getPathsFromConfig('callbacks')));
+        $this->app->bind(RequestBodiesBuilder::class, fn () => new RequestBodiesBuilder($this->getPathsFromConfig('request_bodies')));
+        $this->app->bind(ResponsesBuilder::class, fn () => new ResponsesBuilder($this->getPathsFromConfig('responses')));
+        $this->app->bind(SchemasBuilder::class, fn () => new SchemasBuilder($this->getPathsFromConfig('schemas')));
+        $this->app->bind(SecuritySchemesBuilder::class, fn () => new SecuritySchemesBuilder($this->getPathsFromConfig('security_schemes')));
 
-        $this->app->bind(RequestBodiesBuilder::class, function () {
-            return new RequestBodiesBuilder($this->getPathsFromConfig('request_bodies'));
-        });
-
-        $this->app->bind(ResponsesBuilder::class, function () {
-            return new ResponsesBuilder($this->getPathsFromConfig('responses'));
-        });
-
-        $this->app->bind(SchemasBuilder::class, function () {
-            return new SchemasBuilder($this->getPathsFromConfig('schemas'));
-        });
-
-        $this->app->bind(SecuritySchemesBuilder::class, function () {
-            return new SecuritySchemesBuilder($this->getPathsFromConfig('security_schemes'));
-        });
-
-        $this->app->singleton(Generator::class, static function (Application $app) {
-            $config = config('openapi');
-
-            return new Generator(
-                $config,
-                $app->make(InfoBuilder::class),
-                $app->make(ServersBuilder::class),
-                $app->make(TagsBuilder::class),
-                $app->make(PathsBuilder::class),
-                $app->make(ComponentsBuilder::class)
-            );
-        });
+        $this->app->singleton(Generator::class, static fn (Application $app) => new Generator(
+            config('openapi'),
+            $app->make(InfoBuilder::class),
+            $app->make(ServersBuilder::class),
+            $app->make(TagsBuilder::class),
+            $app->make(PathsBuilder::class),
+            $app->make(ComponentsBuilder::class)
+        ));
 
         $this->commands([
             Console\GenerateCommand::class,
@@ -80,25 +58,13 @@ class OpenApiServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../config/openapi.php' => config_path('openapi.php'),
-            ], 'openapi-config');
+            $this->publishes([__DIR__.'/../config/openapi.php' => config_path('openapi.php')], 'openapi-config');
         }
-
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
     }
 
     private function getPathsFromConfig(string $type): array
     {
-        $directories = config('openapi.locations.'.$type, []);
-
-        foreach ($directories as &$directory) {
-            $directory = glob($directory, GLOB_ONLYDIR);
-        }
-
-        return (new Collection($directories))
-            ->flatten()
-            ->unique()
-            ->toArray();
+        return collect(config('openapi.locations.'.$type, []))->map(fn ($dir) => glob($dir, GLOB_ONLYDIR))->flatten()->unique()->toArray();
     }
 }

@@ -19,33 +19,12 @@ use Vyuldashev\LaravelOpenApi\RouteInformation;
 
 class OperationsBuilder
 {
-    protected CallbacksBuilder $callbacksBuilder;
-    protected ParametersBuilder $parametersBuilder;
-    protected RequestBodyBuilder $requestBodyBuilder;
-    protected ResponsesBuilder $responsesBuilder;
-    protected ExtensionsBuilder $extensionsBuilder;
-    protected SecurityBuilder $securityBuilder;
-
-    public function __construct(
-        CallbacksBuilder   $callbacksBuilder,
-        ParametersBuilder  $parametersBuilder,
-        RequestBodyBuilder $requestBodyBuilder,
-        ResponsesBuilder   $responsesBuilder,
-        ExtensionsBuilder  $extensionsBuilder,
-        SecurityBuilder    $securityBuilder
-    )
+    public function __construct(protected CallbacksBuilder $callbacksBuilder, protected ParametersBuilder $parametersBuilder, protected RequestBodyBuilder $requestBodyBuilder, protected ResponsesBuilder $responsesBuilder, protected ExtensionsBuilder $extensionsBuilder, protected SecurityBuilder $securityBuilder)
     {
-        $this->callbacksBuilder = $callbacksBuilder;
-        $this->parametersBuilder = $parametersBuilder;
-        $this->requestBodyBuilder = $requestBodyBuilder;
-        $this->responsesBuilder = $responsesBuilder;
-        $this->extensionsBuilder = $extensionsBuilder;
-        $this->securityBuilder = $securityBuilder;
     }
 
     /**
      * @param RouteInformation[]|Collection $routes
-     * @return array
      *
      * @throws InvalidArgumentException
      */
@@ -56,44 +35,27 @@ class OperationsBuilder
         /** @var RouteInformation[] $routes */
         foreach ($routes as $route) {
             /** @var OperationAttribute|null $operationAttribute */
-            $operationAttribute = $route->actionAttributes
-                ->first(static fn(object $attribute) => $attribute instanceof OperationAttribute);
-
-            $operationId = optional($operationAttribute)->id;
-            $tags = $operationAttribute->tags ?? [];
-            $servers = collect($operationAttribute->servers)
-                ->filter(fn($server) => app($server) instanceof ServerFactory)
-                ->map(static fn($server) => app($server)->build())
+            $operationAttribute = $route->actionAttributes->first(static fn (object $attribute) => $attribute instanceof OperationAttribute);
+            $servers = collect($operationAttribute->servers)->filter(fn ($server) => app($server) instanceof ServerFactory)
+                ->map(static fn ($server) => app($server)->build())
                 ->toArray();
-
-            $parameters = $this->parametersBuilder->build($route);
-            $requestBody = $this->requestBodyBuilder->build($route);
-            $responses = $this->responsesBuilder->build($route);
-            $callbacks = $this->callbacksBuilder->build($route);
-            $security = $this->securityBuilder->build($route);
 
             $operation = Operation::create()
                 ->action(Str::lower($operationAttribute->method) ?: $route->method)
-                ->tags(...$tags)
+                ->tags(...($operationAttribute->tags ?? []))
                 ->deprecated($this->isDeprecated($route->actionDocBlock))
                 ->description($route->actionDocBlock->getDescription()->render() !== '' ? $route->actionDocBlock->getDescription()->render() : null)
                 ->summary($route->actionDocBlock->getSummary() !== '' ? $route->actionDocBlock->getSummary() : null)
-                ->operationId($operationId)
-                ->parameters(...$parameters)
-                ->requestBody($requestBody)
-                ->responses(...$responses)
-                ->callbacks(...$callbacks)
+                ->operationId(optional($operationAttribute)->id)
+                ->parameters(...($this->parametersBuilder->build($route)))
+                ->requestBody($this->requestBodyBuilder->build($route))
+                ->responses(...($this->responsesBuilder->build($route)))
+                ->callbacks(...($this->callbacksBuilder->build($route)))
                 ->servers(...$servers);
 
-            /** Not the cleanest code, we need to call notSecurity instead of security when our security has been turned off */
-            if (count($security) === 1 && $security[0]->securityScheme === null) {
-                $operation = $operation->noSecurity();
-            } else {
-                $operation = $operation->security(...$security);
-            }
-
+            $security = $this->securityBuilder->build($route);
+            $operation = count($security) === 1 && $security[0]->securityScheme === null ? $operation->noSecurity() : $operation->security(...$security);
             $this->extensionsBuilder->build($operation, $route->actionAttributes);
-
             $operations[] = $operation;
         }
 
@@ -105,13 +67,6 @@ class OperationsBuilder
         if ($actionDocBlock === null) {
             return null;
         }
-
-        $deprecatedTag = $actionDocBlock->getTagsByName('deprecated');
-
-        if (count($deprecatedTag) > 0) {
-            return true;
-        }
-
-        return null;
+        return count($actionDocBlock->getTagsByName('deprecated')) > 0 ? true : null;
     }
 }

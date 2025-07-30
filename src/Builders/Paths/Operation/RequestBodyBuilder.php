@@ -14,18 +14,14 @@ class RequestBodyBuilder
     {
         /** @var RequestBodyAttribute|null $requestBody */
         $requestBody = $route->actionAttributes->first(static fn (object $attribute) => $attribute instanceof RequestBodyAttribute);
-
         if ($requestBody) {
             /** @var RequestBodyFactory $requestBodyFactory */
             $requestBodyFactory = app($requestBody->factory);
-
             $requestBody = $requestBodyFactory->build();
-
             if ($requestBodyFactory instanceof Reusable) {
                 return RequestBody::ref('#/components/requestBodies/'.$requestBody->objectId);
             }
         }
-
         return $requestBody;
     }
 }

@@ -20,30 +20,19 @@ abstract class Builder
     protected function getAllClasses(string $collection): Collection
     {
         return collect($this->directories)
-            ->map(function (string $directory) {
-                $map = ClassMapGenerator::createMap($directory);
-
-                return array_keys($map);
-            })
+            ->map(fn (string $directory) => array_keys(ClassMapGenerator::createMap($directory)))
             ->flatten()
             ->filter(function (string $class) use ($collection) {
-                $reflectionClass = new ReflectionClass($class);
-                $collectionAttributes = $reflectionClass->getAttributes(CollectionAttribute::class);
-
+                $collectionAttributes = (new ReflectionClass($class))->getAttributes(CollectionAttribute::class);
                 if (count($collectionAttributes) === 0 && $collection === Generator::COLLECTION_DEFAULT) {
                     return true;
                 }
-
                 if (count($collectionAttributes) === 0) {
                     return false;
                 }
-
                 /** @var CollectionAttribute $collectionAttribute */
                 $collectionAttribute = $collectionAttributes[0]->newInstance();
-
-                return
-                    $collectionAttribute->name === ['*'] ||
-                    in_array($collection, $collectionAttribute->name ?? [], true);
+                return $collectionAttribute->name === ['*'] || in_array($collection, $collectionAttribute->name ?? [], true);
             });
     }
 }

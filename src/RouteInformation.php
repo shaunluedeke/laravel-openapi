@@ -28,7 +28,7 @@ class RouteInformation
     public Collection $parameters;
 
     /** @var Collection|Attribute[] */
-    public Collection|array $controllerAttributes;
+    public array|Collection $controllerAttributes;
 
     public string $action;
 
@@ -36,18 +36,15 @@ class RouteInformation
     public array $actionParameters;
 
     /** @var Collection|Attribute[] */
-    public Collection|array $actionAttributes;
+    public array|Collection $actionAttributes;
 
     public ?DocBlock $actionDocBlock;
 
     /**
-     * @param  Route  $route
-     * @return ?RouteInformation
      */
     public static function createFromRoute(Route $route): ?RouteInformation
     {
-        $method = collect($route->methods())
-            ->map(static fn ($value) => Str::lower($value))
+        $method = collect($route->methods())->map(static fn ($value) => Str::lower($value))
             ->filter(static fn ($value) => ! in_array($value, ['head', 'options'], true))
             ->first();
 
@@ -63,13 +60,13 @@ class RouteInformation
         preg_match_all('/{(.*?)}/', $route->uri, $parameters);
         $parameters = collect($parameters[1]);
 
-        if (count($parameters) > 0) {
+        if ($parameters->isNotEmpty()) {
             $parameters = $parameters->map(static fn ($parameter) => [
                 'name' => Str::replaceLast('?', '', $parameter),
                 'required' => ! Str::endsWith($parameter, '?'),
             ]);
         }
-        
+
         try {
             $reflectionClass = new ReflectionClass($controller);
             $reflectionMethod = $reflectionClass->getMethod($action);
@@ -86,13 +83,7 @@ class RouteInformation
             $docBlock = null;
         }
 
-        $controllerAttributes = collect($reflectionClass->getAttributes())
-            ->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
-
-        $actionAttributes = collect($reflectionMethod->getAttributes())
-            ->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
-
-        $containsControllerLevelParameter = $actionAttributes->contains(fn ($value) => $value instanceof Parameters);
+        $actionAttributes = collect($reflectionMethod->getAttributes())->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
 
         $instance = new RouteInformation();
         $instance->domain = $route->domain();
@@ -100,8 +91,8 @@ class RouteInformation
         $instance->uri = Str::start($route->uri(), '/');
         $instance->name = $route->getName();
         $instance->controller = $controller;
-        $instance->parameters = $containsControllerLevelParameter ? collect() : $parameters;
-        $instance->controllerAttributes = $controllerAttributes;
+        $instance->parameters = $actionAttributes->contains(fn ($value) => $value instanceof Parameters) ? collect() : $parameters;
+        $instance->controllerAttributes = collect($reflectionClass->getAttributes())->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
         $instance->action = $action;
         $instance->actionParameters = $reflectionMethod->getParameters();
         $instance->actionAttributes = $actionAttributes;

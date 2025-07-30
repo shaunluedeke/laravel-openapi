@@ -14,26 +14,15 @@ class GenerateCommand extends Command
 
     public function handle(Generator $generator): void
     {
-        $collectionExists = collect(config('openapi.collections'))->has($this->argument('collection'));
-
-        if (! $collectionExists) {
+        if (!collect(config('openapi.collections'))->has($this->argument('collection'))) {
             $this->error('Collection "'.$this->argument('collection').'" does not exist.');
-
             return;
         }
-
         if ($this->option('output')) {
-            //create file if not exists, or overwrite if exists and put the generated JSON there
             file_put_contents($this->option('output'), $generator->generate($this->argument('collection'))->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
             $this->info('OpenAPI specification generated successfully.');
-
             return;
         }
-        $this->line(
-            $generator
-                ->generate($this->argument('collection'))
-                ->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
+        $this->line($generator->generate($this->argument('collection'))->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 }

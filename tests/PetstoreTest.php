@@ -13,17 +13,13 @@ class PetstoreTest extends TestCase
     protected function setUp(): void
     {
         putenv('APP_URL=http://petstore.swagger.io/v1');
-
         parent::setUp();
-
         Route::get('/pets', [PetController::class, 'index']);
     }
 
     protected function getEnvironmentSetUp($app): void
     {
-        $app['config']->set('openapi.locations.schemas', [
-            __DIR__.'/../examples/petstore/OpenApi/Schemas',
-        ]);
+        $app['config']->set('openapi.locations.schemas', [__DIR__.'/../examples/petstore/OpenApi/Schemas',]);
     }
 
     public function testGenerate(): void
@@ -31,7 +27,6 @@ class PetstoreTest extends TestCase
         $spec = $this->generate()->toArray();
 
         self::assertSame('http://petstore.swagger.io/v1', $spec['servers'][0]['url']);
-
         self::assertArrayHasKey('/pets', $spec['paths']);
         self::assertArrayHasKey('get', $spec['paths']['/pets']);
 

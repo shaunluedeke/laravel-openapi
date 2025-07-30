@@ -48,13 +48,11 @@ class ComponentsBuilder
 
         if (count($callbacks) > 0) {
             $hasAnyObjects = true;
-
             $components = $components->callbacks(...$callbacks);
         }
 
         if (count($requestBodies) > 0) {
             $hasAnyObjects = true;
-
             $components = $components->requestBodies(...$requestBodies);
         }
 
@@ -73,14 +71,12 @@ class ComponentsBuilder
             $components = $components->securitySchemes(...$securitySchemes);
         }
 
-        if (! $hasAnyObjects) {
+        if (!$hasAnyObjects) {
             return null;
         }
-
         foreach ($middlewares as $middleware) {
             app($middleware)->after($components);
         }
-
         return $components;
     }
 }

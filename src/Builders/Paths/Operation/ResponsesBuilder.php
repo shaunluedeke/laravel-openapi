@@ -15,19 +15,16 @@ class ResponsesBuilder
             ->filter(static fn (object $attribute) => $attribute instanceof ResponseAttribute)
             ->map(static function (ResponseAttribute $attribute) {
                 if (isset($attribute->factories) && is_array($attribute->factories) && $attribute->factory === null) {
-                    return collect($attribute->factories)
-                        ->map(static function (string $factory) {
-                            $factory = app($factory);
-                            $response = $factory->build();
+                    return collect($attribute->factories)->map(static function (string $factory) {
+                        $factory = app($factory);
+                        $response = $factory->build();
 
-                            if ($factory instanceof Reusable) {
-                                return Response::ref('#/components/responses/'.$response->objectId);
-                            }
+                        if ($factory instanceof Reusable) {
+                            return Response::ref('#/components/responses/'.$response->objectId);
+                        }
 
-                            return $response;
-                        })
-                        ->values()
-                        ->toArray();
+                        return $response;
+                    })->values()->toArray();
                 }
                 if ($attribute->factory === null) {
                     throw new \InvalidArgumentException('Factory class must be instance of ResponseFactory');

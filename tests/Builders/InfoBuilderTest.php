@@ -11,10 +11,6 @@ class InfoBuilderTest extends TestCase
 {
     /**
      * @dataProvider providerBuildContact
-     *
-     * @param  array  $config
-     * @param  array  $expected
-     * @return void
      */
     public function testBuildContact(array $config, array $expected): void
     {
@@ -40,8 +36,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
@@ -51,8 +47,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
@@ -63,8 +59,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
@@ -73,8 +69,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
@@ -85,8 +81,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
@@ -95,8 +91,8 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
@@ -107,8 +103,8 @@ class InfoBuilderTest extends TestCase
                         'email' => 'sample_contact_email',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
@@ -117,22 +113,22 @@ class InfoBuilderTest extends TestCase
                         'email' => 'sample_contact_email',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
             'If Contact does not exist, the correct json can be output.' => [
                 array_merge($common, [
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
@@ -140,14 +136,14 @@ class InfoBuilderTest extends TestCase
                 array_merge($common, [
                     'contact' => [],
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
                     'license' => [
-                        'name'=>'sample_license_name',
-                        'url'=>'sample_license_url',
+                        'name' => 'sample_license_name',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
             ],
@@ -160,7 +156,7 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'url'=>'sample_license_url',
+                        'url' => 'sample_license_url',
                     ],
                 ]),
                 array_merge($common, [
@@ -179,7 +175,7 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
+                        'name' => 'sample_license_name',
                     ],
                 ]),
                 array_merge($common, [
@@ -189,7 +185,7 @@ class InfoBuilderTest extends TestCase
                         'url' => 'sample_contact_url',
                     ],
                     'license' => [
-                        'name'=>'sample_license_name',
+                        'name' => 'sample_license_name',
                     ],
                 ]),
             ],
@@ -235,10 +231,6 @@ class InfoBuilderTest extends TestCase
 
     /**
      * Assert equality as an associative array.
-     *
-     * @param  array  $expected
-     * @param  array  $actual
-     * @return void
      */
     protected function assertSameAssociativeArray(array $expected, array $actual): void
     {
@@ -251,6 +243,6 @@ class InfoBuilderTest extends TestCase
             self::assertSame($value, $actual[$key]);
             unset($actual[$key]);
         }
-        self::assertCount(0, $actual, sprintf('[%s] does not matched keys.', join(', ', array_keys($actual))));
+        self::assertCount(0, $actual, sprintf('[%s] does not matched keys.', implode(', ', array_keys($actual))));
     }
 }

@@ -11,12 +11,9 @@ class SecuritySchemeFactoryMakeCommand extends GeneratorCommand
     protected $description = 'Create a new SecurityScheme factory class';
     protected $type = 'SecurityScheme';
 
-    protected function buildClass($name)
+    protected function buildClass($name): array|string
     {
-        $output = parent::buildClass($name);
-        $output = str_replace('DummySecurityScheme', Str::replaceLast('SecurityScheme', '', class_basename($name)), $output);
-
-        return $output;
+        return str_replace('DummySecurityScheme', Str::replaceLast('SecurityScheme', '', class_basename($name)), parent::buildClass($name));
     }
 
     protected function getStub(): string
@@ -32,11 +29,6 @@ class SecuritySchemeFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'SecurityScheme')) {
-            return $name;
-        }
-
-        return $name.'SecurityScheme';
+        return Str::endsWith($name, 'SecurityScheme') ? $name : ($name . 'SecurityScheme');
     }
 }

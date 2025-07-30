@@ -21,23 +21,18 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
     protected $description = 'Create a new Schema factory class';
     protected $type = 'Schema';
 
-    protected function buildClass($name)
+    protected function buildClass($name): array|string
     {
-        $output = parent::buildClass($name);
-        $output = str_replace('DummySchema', Str::replaceLast('Schema', '', class_basename($name)), $output);
-
+        $output = str_replace('DummySchema', Str::replaceLast('Schema', '', class_basename($name)), parent::buildClass($name));
         if ($model = $this->option('model')) {
             return $this->buildModel($output, $model);
         }
-
         return $output;
     }
 
-    protected function buildModel($output, $model)
+    protected function buildModel($output, $model): array|string
     {
-        $appVersion = explode('.', app()::VERSION);
-        $namespace = $appVersion[0] >= 8 ? $this->laravel->getNamespace().'Models\\' : $this->laravel->getNamespace();
-        $model = Str::start($model, $namespace);
+        $model = Str::start($model, explode('.', app()::VERSION)[0] >= 8 ? $this->laravel->getNamespace().'Models\\' : $this->laravel->getNamespace());
 
         if (! is_a($model, Model::class, true)) {
             throw new InvalidArgumentException('Invalid model');
@@ -113,11 +108,7 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
 
     protected function getStub(): string
     {
-        if ($this->option('model')) {
-            return __DIR__.'/stubs/schema.model.stub';
-        }
-
-        return __DIR__.'/stubs/schema.stub';
+        return $this->option('model') ? __DIR__.'/stubs/schema.model.stub' : __DIR__.'/stubs/schema.stub';
     }
 
     protected function getDefaultNamespace($rootNamespace): string
@@ -128,12 +119,7 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Schema')) {
-            return $name;
-        }
-
-        return $name.'Schema';
+        return Str::endsWith($name, 'Schema') ? $name : ($name . 'Schema');
     }
 
     protected function getOptions(): array
