@@ -8,7 +8,6 @@ use Vyuldashev\LaravelOpenApi\RouteInformation;
 
 class SecurityBuilder
 {
-    /** @noinspection PhpParamsInspection */
     public function build(RouteInformation $route): array
     {
         return $route->actionAttributes

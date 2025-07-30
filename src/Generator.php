@@ -15,33 +15,19 @@ class Generator
     public const COLLECTION_DEFAULT = 'default';
     public string $version = OpenApi::OPENAPI_3_0_2;
 
-    protected array $config;
-    protected InfoBuilder $infoBuilder;
-    protected ServersBuilder $serversBuilder;
-    protected TagsBuilder $tagsBuilder;
-    protected PathsBuilder $pathsBuilder;
-    protected ComponentsBuilder $componentsBuilder;
-
     public function __construct(
-        array $config,
-        InfoBuilder $infoBuilder,
-        ServersBuilder $serversBuilder,
-        TagsBuilder $tagsBuilder,
-        PathsBuilder $pathsBuilder,
-        ComponentsBuilder $componentsBuilder
+        private array $config,
+        private InfoBuilder $infoBuilder,
+        private ServersBuilder $serversBuilder,
+        private TagsBuilder $tagsBuilder,
+        private PathsBuilder $pathsBuilder,
+        private ComponentsBuilder $componentsBuilder
     ) {
-        $this->config = $config;
-        $this->infoBuilder = $infoBuilder;
-        $this->serversBuilder = $serversBuilder;
-        $this->tagsBuilder = $tagsBuilder;
-        $this->pathsBuilder = $pathsBuilder;
-        $this->componentsBuilder = $componentsBuilder;
     }
 
     public function generate(string $collection = self::COLLECTION_DEFAULT): OpenApi
     {
         $middlewares = Arr::get($this->config, 'collections.'.$collection.'.middlewares');
-
         $openApi = OpenApi::create()
             ->openapi(OpenApi::OPENAPI_3_0_2)
             ->info($this->infoBuilder->build(Arr::get($this->config, 'collections.'.$collection.'.info', [])))

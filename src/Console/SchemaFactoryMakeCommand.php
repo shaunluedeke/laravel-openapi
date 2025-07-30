@@ -2,7 +2,6 @@
 
 namespace Vyuldashev\LaravelOpenApi\Console;
 
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\BooleanType;
 use Doctrine\DBAL\Types\DateTimeType;
 use Doctrine\DBAL\Types\DateType;
@@ -30,6 +29,7 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
         return $output;
     }
 
+    /** @noinspection NestedTernaryOperatorInspection */
     protected function buildModel($output, $model): array|string
     {
         $model = Str::start($model, explode('.', app()::VERSION)[0] >= 8 ? $this->laravel->getNamespace().'Models\\' : $this->laravel->getNamespace());
@@ -40,16 +40,9 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
 
         /** @var Model $model */
         $model = app($model);
-
-        $columns = SchemaFacade::connection($model->getConnectionName())->getColumnListing(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable());
         $connection = $model->getConnection();
-
-        $definition = 'return Schema::object(\''.class_basename($model).'\')'.PHP_EOL;
-        $definition .= '            ->properties('.PHP_EOL;
-
-        $properties = collect($columns)
+        $properties = collect(SchemaFacade::connection($model->getConnectionName())->getColumnListing(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable()))
             ->map(static function ($column) use ($model, $connection) {
-                /** @var Column $column */
                 $column = $connection->getDoctrineColumn(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable(), $column);
                 $name = $column->getName();
                 $default = $column->getDefault();
@@ -81,29 +74,10 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
                         $args = [$name, $default];
                         break;
                 }
-
-                $args = array_map(static function ($value) {
-                    if ($value === null) {
-                        return 'null';
-                    }
-
-                    if (is_numeric($value)) {
-                        return $value;
-                    }
-
-                    return '\''.$value.'\'';
-                }, $args);
-
-                $indentation = str_repeat('    ', 4);
-
-                return sprintf($indentation.$format, ...$args);
+                return sprintf(str_repeat('    ', 4) . $format, ...array_map(static fn ($value) => $value === null ? 'null' : (is_numeric($value) ? $value : '\''.$value.'\''), $args));
             })
             ->implode(','.PHP_EOL);
-
-        $definition .= $properties.PHP_EOL;
-        $definition .= '            );';
-
-        return str_replace('DummyDefinition', $definition, $output);
+        return str_replace('DummyDefinition', 'return Schema::object(\'' . class_basename($model) . '\')' . PHP_EOL . '            ->properties('.PHP_EOL . $properties . PHP_EOL . '            );', $output);
     }
 
     protected function getStub(): string

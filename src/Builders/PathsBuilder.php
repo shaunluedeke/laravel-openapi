@@ -16,22 +16,16 @@ use Vyuldashev\LaravelOpenApi\RouteInformation;
 
 class PathsBuilder
 {
-    protected OperationsBuilder $operationsBuilder;
-
-    public function __construct(
-        OperationsBuilder $operationsBuilder
-    ) {
-        $this->operationsBuilder = $operationsBuilder;
+    public function __construct(private OperationsBuilder $operationsBuilder)
+    {
     }
 
     /**
      * @param PathMiddleware[] $middlewares
      * @throws InvalidArgumentException
      */
-    public function build(
-        string $collection,
-        array $middlewares
-    ): array {
+    public function build(string $collection, array $middlewares): array
+    {
         return $this->routes()
             ->filter(static function (RouteInformation $routeInformation) use ($collection) {
                 /** @var CollectionAttribute|null $collectionAttribute */

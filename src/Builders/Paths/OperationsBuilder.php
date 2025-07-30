@@ -19,8 +19,14 @@ use Vyuldashev\LaravelOpenApi\RouteInformation;
 
 class OperationsBuilder
 {
-    public function __construct(protected CallbacksBuilder $callbacksBuilder, protected ParametersBuilder $parametersBuilder, protected RequestBodyBuilder $requestBodyBuilder, protected ResponsesBuilder $responsesBuilder, protected ExtensionsBuilder $extensionsBuilder, protected SecurityBuilder $securityBuilder)
-    {
+    public function __construct(
+        private CallbacksBuilder $callbacksBuilder,
+        private ParametersBuilder $parametersBuilder,
+        private RequestBodyBuilder $requestBodyBuilder,
+        private ResponsesBuilder $responsesBuilder,
+        private ExtensionsBuilder $extensionsBuilder,
+        private SecurityBuilder $securityBuilder
+    ) {
     }
 
     /**
@@ -36,10 +42,6 @@ class OperationsBuilder
         foreach ($routes as $route) {
             /** @var OperationAttribute|null $operationAttribute */
             $operationAttribute = $route->actionAttributes->first(static fn (object $attribute) => $attribute instanceof OperationAttribute);
-            $servers = collect($operationAttribute->servers)->filter(fn ($server) => app($server) instanceof ServerFactory)
-                ->map(static fn ($server) => app($server)->build())
-                ->toArray();
-
             $operation = Operation::create()
                 ->action(Str::lower($operationAttribute->method) ?: $route->method)
                 ->tags(...($operationAttribute->tags ?? []))
@@ -51,7 +53,7 @@ class OperationsBuilder
                 ->requestBody($this->requestBodyBuilder->build($route))
                 ->responses(...($this->responsesBuilder->build($route)))
                 ->callbacks(...($this->callbacksBuilder->build($route)))
-                ->servers(...$servers);
+                ->servers(...(collect($operationAttribute->servers)->filter(fn ($server) => app($server) instanceof ServerFactory)->map(static fn ($server) => app($server)->build())->toArray()));
 
             $security = $this->securityBuilder->build($route);
             $operation = count($security) === 1 && $security[0]->securityScheme === null ? $operation->noSecurity() : $operation->security(...$security);

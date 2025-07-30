@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Vyuldashev\LaravelOpenApi;
 
 use Attribute;
-use Exception;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -44,10 +43,6 @@ class RouteInformation
      */
     public static function createFromRoute(Route $route): ?RouteInformation
     {
-        $method = collect($route->methods())->map(static fn ($value) => Str::lower($value))
-            ->filter(static fn ($value) => ! in_array($value, ['head', 'options'], true))
-            ->first();
-
         $actionNameParts = explode('@', $route->getActionName());
 
         if (count($actionNameParts) === 2) {
@@ -63,7 +58,7 @@ class RouteInformation
         if ($parameters->isNotEmpty()) {
             $parameters = $parameters->map(static fn ($parameter) => [
                 'name' => Str::replaceLast('?', '', $parameter),
-                'required' => ! Str::endsWith($parameter, '?'),
+                'required' => !Str::endsWith($parameter, '?'),
             ]);
         }
 
@@ -75,19 +70,11 @@ class RouteInformation
             return null;
         }
 
-        try {
-            $docComment = $reflectionMethod->getDocComment();
-            $docBlock = $docComment ? DocBlockFactory::createInstance()->create($docComment) : null;
-        } catch (Exception) {
-            // If the doc comment cannot be parsed, we set it to null
-            $docBlock = null;
-        }
-
         $actionAttributes = collect($reflectionMethod->getAttributes())->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
 
-        $instance = new RouteInformation();
+        $instance = new self();
         $instance->domain = $route->domain();
-        $instance->method = $method;
+        $instance->method = collect($route->methods())->map(static fn ($value) => Str::lower($value))->filter(static fn ($value) => ! in_array($value, ['head', 'options'], true))->first();
         $instance->uri = Str::start($route->uri(), '/');
         $instance->name = $route->getName();
         $instance->controller = $controller;
@@ -96,7 +83,7 @@ class RouteInformation
         $instance->action = $action;
         $instance->actionParameters = $reflectionMethod->getParameters();
         $instance->actionAttributes = $actionAttributes;
-        $instance->actionDocBlock = $docBlock;
+        $instance->actionDocBlock = rescue(static fn () => ($docComment = $reflectionMethod->getDocComment()) ? DocBlockFactory::createInstance()->create($docComment) : null, null, false);
         return $instance;
     }
 }

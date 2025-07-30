@@ -17,6 +17,7 @@ abstract class Builder
         $this->directories = $directories;
     }
 
+    /** @noinspection MethodVisibilityInspection */
     protected function getAllClasses(string $collection): Collection
     {
         return collect($this->directories)
@@ -24,13 +25,12 @@ abstract class Builder
             ->flatten()
             ->filter(function (string $class) use ($collection) {
                 $collectionAttributes = (new ReflectionClass($class))->getAttributes(CollectionAttribute::class);
-                if (count($collectionAttributes) === 0 && $collection === Generator::COLLECTION_DEFAULT) {
+                if ($collection === Generator::COLLECTION_DEFAULT && count($collectionAttributes) === 0) {
                     return true;
                 }
                 if (count($collectionAttributes) === 0) {
                     return false;
                 }
-                /** @var CollectionAttribute $collectionAttribute */
                 $collectionAttribute = $collectionAttributes[0]->newInstance();
                 return $collectionAttribute->name === ['*'] || in_array($collection, $collectionAttribute->name ?? [], true);
             });

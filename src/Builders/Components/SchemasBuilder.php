@@ -8,7 +8,6 @@ use Vyuldashev\LaravelOpenApi\Generator;
 
 class SchemasBuilder extends Builder
 {
-    /** @noinspection PhpParamsInspection */
     public function build(string $collection = Generator::COLLECTION_DEFAULT): array
     {
         return $this->getAllClasses($collection)
