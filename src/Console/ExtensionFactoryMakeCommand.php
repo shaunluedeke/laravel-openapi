@@ -11,12 +11,9 @@ class ExtensionFactoryMakeCommand extends GeneratorCommand
     protected $description = 'Create a new extension factory class';
     protected $type = 'Extension';
 
-    protected function buildClass($name)
+    protected function buildClass($name): array|string
     {
-        $output = parent::buildClass($name);
-        $output = str_replace('DummyExtension', Str::start(Str::snake(Str::replaceLast('DummyExtension', '', class_basename($name)), '-'), 'x-'), $output);
-
-        return $output;
+        return str_replace('DummyExtension', Str::start(Str::snake(Str::replaceLast('DummyExtension', '', class_basename($name)), '-'), 'x-'), parent::buildClass($name));
     }
 
     protected function getStub(): string
@@ -32,11 +29,6 @@ class ExtensionFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Extension')) {
-            return $name;
-        }
-
-        return $name.'Extension';
+        return Str::endsWith($name, 'Extension') ? $name : ($name . 'Extension');
     }
 }

@@ -1,9 +1,9 @@
-name: Tests
+name: Check code style
 
 on: [push, workflow_dispatch]
 
 jobs:
-  tests:
+  code-style:
     runs-on: ubuntu-latest
 
     strategy:
@@ -11,8 +11,7 @@ jobs:
       matrix:
         php: [8.1, 8.2, 8.3, 8.4]
 
-    name: PHP ${{ matrix.php }}
-
+    name: Code style P${{ matrix.php }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,5 +26,5 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Execute tests
-        run: composer test
+      - name: Code style checks for PHP
+        run: composer cs

@@ -16,26 +16,15 @@ class InfoBuilder
             ->description(Arr::get($config, 'description'))
             ->version(Arr::get($config, 'version'));
 
-        if (Arr::has($config, 'contact') &&
-            (
-                array_key_exists('name', $config['contact']) ||
-                array_key_exists('email', $config['contact']) ||
-                array_key_exists('url', $config['contact'])
-            )
-        ) {
+        if (Arr::has($config, 'contact') && (array_key_exists('name', $config['contact']) || array_key_exists('email', $config['contact']) || array_key_exists('url', $config['contact']))) {
             $info = $info->contact($this->buildContact($config['contact']));
         }
-
         if (Arr::has($config, 'license') && array_key_exists('name', $config['license'])) {
             $info = $info->license($this->buildLicense($config['license']));
         }
-
-        $extensions = $config['extensions'] ?? [];
-
-        foreach ($extensions as $key => $value) {
+        foreach (($config['extensions'] ?? []) as $key => $value) {
             $info->x($key, $value);
         }
-
         return $info;
     }
 

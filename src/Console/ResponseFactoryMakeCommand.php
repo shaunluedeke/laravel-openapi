@@ -24,11 +24,6 @@ class ResponseFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Response')) {
-            return $name;
-        }
-
-        return $name.'Response';
+        return Str::endsWith($name, 'Response') ? $name : ($name . 'Response');
     }
 }

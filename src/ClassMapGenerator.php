@@ -16,35 +16,19 @@ class ClassMapGenerator
      */
     public static function createMap(Iterator|string $dir): array
     {
-        if (is_string($dir)) {
-            $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
-        }
-
         $map = [];
-
-        foreach ($dir as $file) {
-            if (! $file->isFile()) {
+        foreach ((is_string($dir) ? new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir)) : $dir) as $file) {
+            if (!$file->isFile()) {
                 continue;
             }
-
             $path = $file->getRealPath() ?: $file->getPathname();
-
             if ('php' !== pathinfo($path, PATHINFO_EXTENSION)) {
                 continue;
             }
-
-            $classes = self::findClasses($path);
-
-            if (PHP_VERSION_ID >= 70000) {
-                // PHP 7 memory manager will not release after token_get_all(), see https://bugs.php.net/70098
-                gc_mem_caches();
-            }
-
-            foreach ($classes as $class) {
+            foreach (self::findClasses($path) as $class) {
                 $map[$class] = $path;
             }
         }
-
         return $map;
     }
 
@@ -56,16 +40,13 @@ class ClassMapGenerator
      */
     private static function findClasses(string $path): array
     {
-        $contents = file_get_contents($path);
-        $tokens = token_get_all($contents);
+        $tokens = token_get_all(file_get_contents($path));
 
         $nsTokens = [T_STRING => true, T_NS_SEPARATOR => true];
         if (defined('T_NAME_QUALIFIED')) {
             $nsTokens[T_NAME_QUALIFIED] = true;
         }
-
         $classes = [];
-
         $namespace = '';
         for ($i = 0; isset($tokens[$i]); $i++) {
             $token = $tokens[$i];
@@ -96,21 +77,17 @@ class ClassMapGenerator
                         if (! isset($tokens[$j][1])) {
                             break;
                         }
-
                         if (T_DOUBLE_COLON === $tokens[$j][0]) {
                             $isClassConstant = true;
                             break;
                         }
-
                         if (! in_array($tokens[$j][0], [T_WHITESPACE, T_DOC_COMMENT, T_COMMENT], true)) {
                             break;
                         }
                     }
-
                     if ($isClassConstant) {
                         break;
                     }
-
                     // Find the classname
                     while (isset($tokens[++$i][1])) {
                         $t = $tokens[$i];
@@ -120,14 +97,12 @@ class ClassMapGenerator
                             break;
                         }
                     }
-
                     $classes[] = ltrim($namespace.$class, '\\');
                     break;
                 default:
                     break;
             }
         }
-
         return $classes;
     }
 }

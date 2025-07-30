@@ -17,27 +17,18 @@ trait Referencable
     public static function ref(?string $objectId = null): Schema
     {
         $instance = app(static::class);
-
-        if (! $instance instanceof Reusable) {
+        if (!$instance instanceof Reusable) {
             throw new InvalidArgumentException('"'.static::class.'" must implement "'.Reusable::class.'" in order to be referencable.');
         }
-
-        $baseRef = null;
-
-        if ($instance instanceof CallbackFactory) {
-            $baseRef = '#/components/callbacks/';
-        } elseif ($instance instanceof ParametersFactory) {
-            $baseRef = '#/components/parameters/';
-        } elseif ($instance instanceof RequestBodyFactory) {
-            $baseRef = '#/components/requestBodies/';
-        } elseif ($instance instanceof ResponseFactory) {
-            $baseRef = '#/components/responses/';
-        } elseif ($instance instanceof SchemaFactory) {
-            $baseRef = '#/components/schemas/';
-        } elseif ($instance instanceof SecuritySchemeFactory) {
-            $baseRef = '#/components/securitySchemes/';
-        }
-
-        return Schema::ref($baseRef.$instance->build()->objectId, $objectId);
+        $baseRef = match (true) {
+            $instance instanceof CallbackFactory => '#/components/callbacks/',
+            $instance instanceof ParametersFactory => '#/components/parameters/',
+            $instance instanceof RequestBodyFactory => '#/components/requestBodies/',
+            $instance instanceof ResponseFactory => '#/components/responses/',
+            $instance instanceof SchemaFactory => '#/components/schemas/',
+            $instance instanceof SecuritySchemeFactory => '#/components/securitySchemes/',
+            default => null,
+        };
+        return Schema::ref($baseRef . $instance->build()->objectId, $objectId);
     }
 }

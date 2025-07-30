@@ -2,7 +2,6 @@
 
 namespace Vyuldashev\LaravelOpenApi\Console;
 
-use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\BooleanType;
 use Doctrine\DBAL\Types\DateTimeType;
 use Doctrine\DBAL\Types\DateType;
@@ -21,23 +20,19 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
     protected $description = 'Create a new Schema factory class';
     protected $type = 'Schema';
 
-    protected function buildClass($name)
+    protected function buildClass($name): array|string
     {
-        $output = parent::buildClass($name);
-        $output = str_replace('DummySchema', Str::replaceLast('Schema', '', class_basename($name)), $output);
-
+        $output = str_replace('DummySchema', Str::replaceLast('Schema', '', class_basename($name)), parent::buildClass($name));
         if ($model = $this->option('model')) {
             return $this->buildModel($output, $model);
         }
-
         return $output;
     }
 
-    protected function buildModel($output, $model)
+    /** @noinspection NestedTernaryOperatorInspection */
+    protected function buildModel($output, $model): array|string
     {
-        $appVersion = explode('.', app()::VERSION);
-        $namespace = $appVersion[0] >= 8 ? $this->laravel->getNamespace().'Models\\' : $this->laravel->getNamespace();
-        $model = Str::start($model, $namespace);
+        $model = Str::start($model, explode('.', app()::VERSION)[0] >= 8 ? $this->laravel->getNamespace().'Models\\' : $this->laravel->getNamespace());
 
         if (! is_a($model, Model::class, true)) {
             throw new InvalidArgumentException('Invalid model');
@@ -45,16 +40,9 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
 
         /** @var Model $model */
         $model = app($model);
-
-        $columns = SchemaFacade::connection($model->getConnectionName())->getColumnListing(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable());
         $connection = $model->getConnection();
-
-        $definition = 'return Schema::object(\''.class_basename($model).'\')'.PHP_EOL;
-        $definition .= '            ->properties('.PHP_EOL;
-
-        $properties = collect($columns)
+        $properties = collect(SchemaFacade::connection($model->getConnectionName())->getColumnListing(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable()))
             ->map(static function ($column) use ($model, $connection) {
-                /** @var Column $column */
                 $column = $connection->getDoctrineColumn(config('database.connections.'.config('database.default').'.prefix', '').$model->getTable(), $column);
                 $name = $column->getName();
                 $default = $column->getDefault();
@@ -86,38 +74,15 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
                         $args = [$name, $default];
                         break;
                 }
-
-                $args = array_map(static function ($value) {
-                    if ($value === null) {
-                        return 'null';
-                    }
-
-                    if (is_numeric($value)) {
-                        return $value;
-                    }
-
-                    return '\''.$value.'\'';
-                }, $args);
-
-                $indentation = str_repeat('    ', 4);
-
-                return sprintf($indentation.$format, ...$args);
+                return sprintf(str_repeat('    ', 4) . $format, ...array_map(static fn ($value) => $value === null ? 'null' : (is_numeric($value) ? $value : '\''.$value.'\''), $args));
             })
             ->implode(','.PHP_EOL);
-
-        $definition .= $properties.PHP_EOL;
-        $definition .= '            );';
-
-        return str_replace('DummyDefinition', $definition, $output);
+        return str_replace('DummyDefinition', 'return Schema::object(\'' . class_basename($model) . '\')' . PHP_EOL . '            ->properties('.PHP_EOL . $properties . PHP_EOL . '            );', $output);
     }
 
     protected function getStub(): string
     {
-        if ($this->option('model')) {
-            return __DIR__.'/stubs/schema.model.stub';
-        }
-
-        return __DIR__.'/stubs/schema.stub';
+        return $this->option('model') ? __DIR__.'/stubs/schema.model.stub' : __DIR__.'/stubs/schema.stub';
     }
 
     protected function getDefaultNamespace($rootNamespace): string
@@ -128,12 +93,7 @@ class SchemaFactoryMakeCommand extends GeneratorCommand
     protected function qualifyClass($name): string
     {
         $name = parent::qualifyClass($name);
-
-        if (Str::endsWith($name, 'Schema')) {
-            return $name;
-        }
-
-        return $name.'Schema';
+        return Str::endsWith($name, 'Schema') ? $name : ($name . 'Schema');
     }
 
     protected function getOptions(): array

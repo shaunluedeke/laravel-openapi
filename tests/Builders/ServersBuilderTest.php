@@ -11,10 +11,6 @@ class ServersBuilderTest extends TestCase
 {
     /**
      * @dataProvider providerBuild
-     *
-     * @param  array  $config
-     * @param  array  $expected
-     * @return void
      */
     public function testBuild(array $config, array $expected): void
     {
@@ -128,10 +124,6 @@ class ServersBuilderTest extends TestCase
 
     /**
      * Assert equality as an associative array.
-     *
-     * @param  array  $expected
-     * @param  array  $actual
-     * @return void
      */
     protected function assertSameAssociativeArray(array $expected, array $actual): void
     {
@@ -144,6 +136,6 @@ class ServersBuilderTest extends TestCase
             self::assertSame($value, $actual[$key]);
             unset($actual[$key]);
         }
-        self::assertCount(0, $actual, sprintf('[%s] does not matched keys.', join(', ', array_keys($actual))));
+        self::assertCount(0, $actual, sprintf('[%s] does not matched keys.', implode(', ', array_keys($actual))));
     }
 }

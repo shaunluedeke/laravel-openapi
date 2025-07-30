@@ -10,7 +10,7 @@ class Collection
     /** @var string|array<string> */
     public array|string $name;
 
-    public function __construct(string|array $name = 'default')
+    public function __construct(array|string $name = 'default')
     {
         $this->name = $name;
     }

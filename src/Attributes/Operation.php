@@ -21,10 +21,7 @@ class Operation
     public ?array $servers;
 
     /**
-     * @param  string|null  $id
-     * @param  array  $tags
      * @param  \Vyuldashev\LaravelOpenApi\Factories\SecuritySchemeFactory|string|null  $security
-     * @param  string|null  $method
      *
      * @throws InvalidArgumentException
      */
@@ -36,7 +33,7 @@ class Operation
         $this->servers = $servers;
 
         if ($security === '') {
-            //user wants to turn off security on this operation
+            // user wants to turn off security on this operation
             $this->security = $security;
 
             return;

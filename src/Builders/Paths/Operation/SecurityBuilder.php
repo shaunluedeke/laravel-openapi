@@ -13,16 +13,7 @@ class SecurityBuilder
         return $route->actionAttributes
             ->filter(static fn (object $attribute) => $attribute instanceof OperationAttribute)
             ->filter(static fn (OperationAttribute $attribute) => isset($attribute->security))
-            ->map(static function (OperationAttribute $attribute) {
-                // return a null scheme if the security is set to ''
-                if ($attribute->security === '') {
-                    return SecurityRequirement::create()->securityScheme(null);
-                }
-                $security = app($attribute->security);
-                $scheme = $security->build();
-
-                return SecurityRequirement::create()->securityScheme($scheme);
-            })
+            ->map(static fn (OperationAttribute $attribute) => SecurityRequirement::create()->securityScheme($attribute->security === '' ? null : app($attribute->security)->build())) // return a null scheme if the security is set to ''
             ->values()
             ->toArray();
     }
