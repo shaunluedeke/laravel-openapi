@@ -52,6 +52,6 @@ class ParametersBuilder
     {
         /** @var Parameters|null $parameters */
         $parameters = $route->actionAttributes->first(static fn ($attribute) => $attribute instanceof Parameters);
-        return collect($parameters ? app($parameters->factory)->build() : []);
+        return collect($parameters ? rescue(static fn() => app($parameters->factory)->build()) : [])->filter(static fn ($item) => $item !== null);
     }
 }

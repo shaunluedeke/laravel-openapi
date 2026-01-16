@@ -53,7 +53,7 @@ class OperationsBuilder
                 ->requestBody($this->requestBodyBuilder->build($route))
                 ->responses(...($this->responsesBuilder->build($route)))
                 ->callbacks(...($this->callbacksBuilder->build($route)))
-                ->servers(...(collect($operationAttribute->servers)->filter(fn ($server) => app($server) instanceof ServerFactory)->map(static fn ($server) => app($server)->build())->toArray()));
+                ->servers(...(collect($operationAttribute->servers)->filter(fn ($server) => app($server) instanceof ServerFactory)->map(static fn ($server) => rescue(static fn() => app($server)->build()))->filter(static fn ($item) => $item !== null)->toArray()));
 
             $security = $this->securityBuilder->build($route);
             $operation = count($security) === 1 && $security[0]->securityScheme === null ? $operation->noSecurity() : $operation->security(...$security);

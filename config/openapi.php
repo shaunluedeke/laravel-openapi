@@ -51,6 +51,11 @@ return [
             'route' => [
                 'uri' => '/openapi',
                 'middleware' => [],
+                'cache' => [
+                    'enabled' => false,
+                    'key' => 'openapi-specification',
+                    'ttl' => 10, // in minutes
+                ],
             ],
 
             // Register custom middlewares for different objects.

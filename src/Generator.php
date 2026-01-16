@@ -25,7 +25,16 @@ class Generator
     ) {
     }
 
-    public function generate(string $collection = self::COLLECTION_DEFAULT): OpenApi
+    public function generate(string $collection = self::COLLECTION_DEFAULT, bool $cacheEnabled = true): OpenApi
+    {
+        $cache = Arr::get($this->config, 'collections.'.$collection.'.route.cache',  ['enabled' => false, 'key' => 'openapi-specification', 'ttl' => 60]);
+        if ($cacheEnabled && ($cache['enabled'] ?? false)) {
+            return cache()->remember($cache['key'] ?? 'openapi-specification', ($cache['ttl'] ?? 10) * 60, fn () => $this->buildOpenApiDocument($collection));
+        }
+        return $this->buildOpenApiDocument($collection);
+    }
+    
+    public function buildOpenApiDocument(string $collection = self::COLLECTION_DEFAULT): OpenApi
     {
         $middlewares = Arr::get($this->config, 'collections.'.$collection.'.middlewares');
         $openApi = OpenApi::create()
@@ -40,5 +49,13 @@ class Generator
             $openApi = $openApi->x($key, $value);
         }
         return $openApi;
+    }
+    
+    public function clearCache(string $collection = self::COLLECTION_DEFAULT): void
+    {
+        $cache = Arr::get($this->config, 'collections.'.$collection.'.route.cache',  ['enabled' => false, 'key' => 'openapi-specification', 'ttl' => 60]);
+        if ($cache['enabled'] ?? false) {
+            cache()->forget($cache['key'] ?? 'openapi-specification');
+        }
     }
 }
