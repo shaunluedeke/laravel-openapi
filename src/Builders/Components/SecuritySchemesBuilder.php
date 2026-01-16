@@ -11,7 +11,7 @@ class SecuritySchemesBuilder extends Builder
     {
         return $this->getAllClasses($collection)
             ->filter(static fn ($class) => is_a($class, SecuritySchemeFactory::class, true))
-            ->map(static fn ($class) => rescue(static fn() => app($class)->build()))
+            ->map(static fn ($class) => rescue(static fn () => app($class)->build()))
             ->filter(static fn ($item) => $item !== null)
             ->values()
             ->toArray();

@@ -17,11 +17,11 @@ class RequestBodyBuilder
             /** @var RequestBodyAttribute|null $requestBody */
             $requestBody = $route->actionAttributes->first(static fn (object $attribute) => $attribute instanceof RequestBodyAttribute);
             if ($requestBody) {
-                    $requestBodyFactory = app($requestBody->factory);
-                    $requestBody = $requestBodyFactory->build();
-                    if ($requestBodyFactory instanceof Reusable) {
-                        return RequestBody::ref('#/components/requestBodies/' . $requestBody->objectId);
-                    }
+                $requestBodyFactory = app($requestBody->factory);
+                $requestBody = $requestBodyFactory->build();
+                if ($requestBodyFactory instanceof Reusable) {
+                    return RequestBody::ref('#/components/requestBodies/' . $requestBody->objectId);
+                }
             }
             return $requestBody;
         } catch (Exception $e) {

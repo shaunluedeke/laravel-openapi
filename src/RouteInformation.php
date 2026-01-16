@@ -13,7 +13,6 @@ use phpDocumentor\Reflection\DocBlock;
 use phpDocumentor\Reflection\DocBlockFactory;
 use ReflectionAttribute;
 use ReflectionClass;
-use ReflectionException;
 use ReflectionParameter;
 use Vyuldashev\LaravelOpenApi\Attributes\Parameters;
 
@@ -72,7 +71,7 @@ class RouteInformation
             $instance->actionParameters = $reflectionMethod->getParameters();
             $instance->actionAttributes = $actionAttributes;
             $instance->actionDocBlock = rescue(static fn () => ($docComment = $reflectionMethod->getDocComment()) ? DocBlockFactory::createInstance()->create($docComment) : null, null, false);
-            
+
             return $instance;
         } catch (Exception) {
             return null;
